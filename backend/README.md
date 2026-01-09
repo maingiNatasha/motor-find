@@ -47,7 +47,7 @@ This structure improves maintainability, testability, and reusability.
 ---
 
 ## 📁 Folder Structure
-
+```
 backend/
 ├── src/
 │ ├── controllers/ # Request handling logic
@@ -64,7 +64,7 @@ backend/
 ├── .env.example # Environment variable template
 ├── package.json
 └── README.md
-
+```
 ---
 
 ## 🔐 Authentication Flow
