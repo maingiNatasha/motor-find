@@ -1,4 +1,4 @@
-# 🔐 Backend – Authentication API
+# Backend - Authentication API
 
 This is the backend authentication service for the **Fullstack Auth Starter** project.
 
@@ -6,7 +6,7 @@ It provides a **secure, production-ready REST API** handling user authentication
 
 ---
 
-## 🧰 Tech Stack
+## Tech Stack
 
 - Node.js
 - Express.js
@@ -16,7 +16,7 @@ It provides a **secure, production-ready REST API** handling user authentication
 
 ---
 
-## 🎯 Responsibilities
+## Responsibilities
 
 The backend is responsible for:
 
@@ -29,45 +29,45 @@ The backend is responsible for:
 
 ---
 
-## 🏗 Architecture Overview
+## Architecture Overview
 
 The backend follows a layered architecture with clear separation of concerns:
 
-- **Routes** – Define API endpoints and map requests to controllers
-- **Controllers** – Handle request/response logic
-- **Services** – Contain core business logic
-- **Models** – Handle database queries and persistence
-- **Middleware** – Authentication and request validation
-- **Validators** – Input validation schemas
-- **Utils** – Shared helper functions
-- **DB** – Database connection and configuration
+- **Routes** - Define API endpoints and map requests to controllers
+- **Controllers** - Handle request/response logic
+- **Services** - Contain core business logic
+- **Models** - Handle database queries and persistence
+- **Middleware** - Authentication and request validation
+- **Validators** - Input validation schemas
+- **Utils** - Shared helper functions
+- **DB** - Database connection and configuration
 
 This structure improves maintainability, testability, and reusability.
 
 ---
 
-## 📁 Folder Structure
+## Folder Structure
 ```
 backend/
-├── src/
-│ ├── controllers/ # Request handling logic
-│ ├── routes/ # API route definitions
-│ ├── services/ # Business logic
-│ ├── models/ # Database queries
-│ ├── middleware/ # Auth & validation middlewares
-│ ├── db/ # Database connection & config
-│ ├── validators/ # Request validation schemas
-│ ├── utils/ # Helpers and utilities
-│ └── app.js # Express app setup
-│
-├── server.js # Application entry point
-├── .env.example # Environment variable template
-├── package.json
-└── README.md
+|-- src/
+|   |-- controllers/ # Request handling logic
+|   |-- routes/ # API route definitions
+|   |-- services/ # Business logic
+|   |-- models/ # Database queries
+|   |-- middleware/ # Auth & validation middlewares
+|   |-- db/ # Database connection & config
+|   |-- validators/ # Request validation schemas
+|   |-- utils/ # Helpers and utilities
+|   `-- app.js # Express app setup
+|
+|-- server.js # Application entry point
+|-- .env.example # Environment variable template
+|-- package.json
+`-- README.md
 ```
 ---
 
-## 🔐 Authentication Flow
+## Authentication Flow
 
 ### 1. Registration
 - User submits registration details
@@ -92,21 +92,66 @@ backend/
 
 ---
 
-## 🔑 Environment Variables
+## Email Scenario (Password Reset)
 
-Create a `.env` file using `.env.example` as a reference.
+The password reset flow sends an email containing a one-time reset token:
 
-Typical variables include:
-- Database credentials
-- JWT secrets
-- Token expiration values
-- Server port
+1. `POST /auth/password/forgot` is called with the user's email.
+2. The API generates a reset token, stores a hashed version in the database, and sets an expiry.
+3. An email is sent via SMTP (see `.env` SMTP settings).
+4. The user clicks the link in the email and submits a new password to `POST /auth/password/reset` along with the token.
+5. The token is validated, the password is updated, and the token is marked used.
 
-⚠️ Never commit your `.env` file.
+Notes:
+- Email delivery currently uses a Mailtrap sandbox (development-only) until a production provider is configured.
+- The API responds with success for unknown emails to avoid user enumeration.
+- If SMTP fails, the API still returns success so attackers cannot probe for valid accounts.
+
+Example Mailtrap sandbox settings (replace with your Mailtrap values):
+```
+SMTP_HOST=sandbox.smtp.mailtrap.io
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your_mailtrap_username
+SMTP_PASS=your_mailtrap_password
+```
+You can find these credentials in your Mailtrap inbox under SMTP Settings.
+
+Switching providers:
+- Update `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, and `SMTP_PASS` in `.env` to match your SMTP provider.
+- Keep `EMAIL_FROM_NAME` and `EMAIL_FROM_ADDRESS` aligned with your provider's verified sender settings.
 
 ---
 
-## 🗄 Database Schema
+## Environment Variables
+
+Create a `.env` file using `.env.example` as a reference.
+
+| Variable | Description |
+| --- | --- |
+| `DB_HOST` | MySQL host |
+| `DB_USER` | MySQL username |
+| `DB_PASSWORD` | MySQL password |
+| `DB_NAME` | Database name |
+| `JWT_SECRET` | JWT signing secret |
+| `JWT_EXPIRES_IN` | JWT expiry (e.g., `15m`) |
+| `RESET_TOKEN_EXPIRES_MINUTES` | Password reset token TTL (minutes) |
+| `FRONTEND_RESET_URL` | Reset URL used in emails |
+| `APP_NAME` | App display name |
+| `APP_URL` | App base URL |
+| `SMTP_HOST` | SMTP host |
+| `SMTP_PORT` | SMTP port |
+| `SMTP_SECURE` | Use TLS (`true`/`false`) |
+| `SMTP_USER` | SMTP username |
+| `SMTP_PASS` | SMTP password/app password |
+| `EMAIL_FROM_NAME` | From name for emails |
+| `EMAIL_FROM_ADDRESS` | From email address |
+
+Never commit your `.env` file.
+
+---
+
+## Database Schema
 
 The database schema is provided in:
 
@@ -116,17 +161,40 @@ This file is generated using `mysqldump` and contains tables, indexes, and const
 
 ---
 
-## 🚀 Running the Backend
+## Quickstart
 
 1. Install dependencies:
-   npm install
-
-2. Start the development server:
-   npm install
+   `npm install`
+2. Configure environment:
+   - Copy `.env.example` to `.env`
+   - Fill in values listed above
+3. Set up the database:
+   - Apply `src/db/schema.sql`
+4. Start the dev server:
+   `npm run dev`
 
 ---
 
-## 📡 API Endpoints
+## Scripts
+
+- `npm run dev` - Run the API with nodemon
+- `npm test` - Placeholder (no tests configured)
+
+---
+
+## API Endpoints
+
+Use `Authorization: Bearer <token>` for protected routes.
+
+### Quick curl example
+
+Register a user:
+
+```bash
+curl -X POST http://localhost:5000/auth/register \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"user@example.com\",\"password\":\"Passw0rd!\"}"
+```
 
 ### Authentication
 All routes are prefixed with `/auth`.
@@ -149,11 +217,11 @@ All routes are prefixed with `/profile`.
 
 ---
 
-## 🧪 Postman Collection
+## Postman Collection
 
 All API endpoints are documented and testable via Postman.
 
-👉 **Postman Collection:**
+**Postman Collection:**
 https://www.postman.com/natashamaingi/my-workspace/collection/27984211-9c21d450-0564-4363-b222-a90ae0d9c843/?action=share&creator=27984211&active-environment=27984211-a3483cb7-b307-4533-9550-5518a8bd2a7f
 
 Import the collection into Postman to:
@@ -165,20 +233,16 @@ Import the collection into Postman to:
 
 ---
 
-## 🔒 Security Considerations
+## Security Considerations
 
 - Passwords are never stored in plain text
-
 - bcrypt is used for password hashing
-
 - JWT secrets are stored securely in environment variables
-
 - Protected routes require valid tokens
-
 - Password reset tokens are time-limited
 
 ---
 
-## 🧩 Reusability
+## Reusability
 
 This backend is designed as a standalone authentication module and can be reused across different applications and architectures.
